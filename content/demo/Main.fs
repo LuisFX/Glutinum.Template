@@ -4,101 +4,135 @@ open Browser
 open Browser.Types
 open GlueTemplate.Temperature
 
-/// Create a conversion row with inputs and conversion function
-let createConverter (label1: string, label2: string, convertFn: float -> float) =
-    // Create container
-    let container = document.createElement "div"
-    container.className <- "grid grid-cols-[1fr_50px_1fr] gap-2 items-center mb-5 bg-white p-5 rounded-lg shadow-sm"
+/// CSS styles using Tailwind classes.
+module Styles =
+    /// Main container style
+    let container = "max-w-lg mx-auto my-10 p-6 bg-gray-50"
     
-    // Create input for first temperature
-    let input1 = document.createElement "input" :?> HTMLInputElement
-    input1.``type`` <- "number"
-    input1.placeholder <- label1
-    input1.step <- "0.1"  // Allow decimal inputs
-    input1.className <- "w-full p-2 border border-gray-300 rounded text-base focus:outline-none focus:border-blue-500"
+    /// Title style
+    let title = "text-3xl text-center text-gray-800 mb-8 font-semibold"
     
-    // Add a small label
-    let small1 = document.createElement "small"
-    small1.textContent <- label1
-    small1.className <- "block text-gray-500 mt-1"
-    let div1 = document.createElement "div"
-    div1.appendChild(input1) |> ignore
-    div1.appendChild(small1) |> ignore
+    /// Converter container with grid layout
+    let converterContainer = "grid grid-cols-[1fr_50px_1fr] gap-4 items-center mb-5 bg-white p-5 rounded-lg shadow-sm"
     
-    // Add to container
-    container.appendChild(div1) |> ignore
+    /// Input field style
+    let input = "w-full p-2 border border-gray-300 rounded text-base focus:outline-none focus:border-blue-500"
     
-    // Add arrow
-    let arrow = document.createElement "div"
-    arrow.className <- "text-center font-bold text-blue-500"
-    arrow.innerHTML <- "→"
-    container.appendChild(arrow) |> ignore
+    /// Small label beneath inputs
+    let label = "block text-gray-500 mt-1"
     
-    // Create input for second temperature
-    let input2 = document.createElement "input" :?> HTMLInputElement
-    input2.``type`` <- "number"
-    input2.placeholder <- label2
-    input2.readOnly <- true
-    input2.className <- "w-full p-2 border border-gray-300 rounded text-base bg-gray-50"
+    /// Bidirectional arrow style
+    let arrow = "text-center font-bold text-blue-500"
     
-    // Add a small label
-    let small2 = document.createElement "small"
-    small2.textContent <- label2
-    small2.className <- "block text-gray-500 mt-1"
-    let div2 = document.createElement "div"
-    div2.appendChild(input2) |> ignore
-    div2.appendChild(small2) |> ignore
+    /// Info note box style
+    let note = "mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded text-sm text-gray-700 leading-relaxed"
     
-    // Add to container
-    container.appendChild(div2) |> ignore
+    /// Paragraph style in the note
+    let noteParagraph = "mt-2"
+
+/// Helper functions for creating UI elements
+module Helpers =
+    /// Create an input field with a label
+    let createLabeledInput (labelText: string) =
+        // Create input
+        let input = document.createElement "input" :?> HTMLInputElement
+        input.``type`` <- "number"
+        input.placeholder <- labelText
+        input.step <- "0.1"
+        input.className <- Styles.input
+        
+        // Create label
+        let label = document.createElement "small"
+        label.textContent <- labelText
+        label.className <- Styles.label
+        
+        // Create container div
+        let container = document.createElement "div"
+        container.appendChild(input) |> ignore
+        container.appendChild(label) |> ignore
+        
+        // Return both the container and the input
+        (container, input)
     
-    // Add event listener for input changes
-    input1.addEventListener("input", fun _ ->
-        // Update the second input when the first input changes
-        if input1.value <> "" then
-            try
-                let value = float input1.value
-                let result = convertFn value
-                input2.value <- result.ToString("0.##")  // Format to 2 decimal places
-            with _ ->
-                input2.value <- ""
-        else
-            input2.value <- ""
-    )
-    
-    // Return the container
-    container
+    /// Setup bidirectional conversion between two temperature inputs
+    let setupConversion (celsiusInput: HTMLInputElement) (fahrenheitInput: HTMLInputElement) =
+        // Flag to prevent infinite update loop
+        let mutable isUpdating = false
+        
+        // Add event listener for Celsius input changes
+        celsiusInput.addEventListener("input", fun _ ->
+            if not isUpdating && celsiusInput.value <> "" then
+                isUpdating <- true
+                try
+                    let celsius = float celsiusInput.value
+                    let fahrenheit = celsiusToFahrenheit celsius
+                    fahrenheitInput.value <- fahrenheit.ToString("0.##")
+                with _ ->
+                    fahrenheitInput.value <- ""
+                isUpdating <- false
+            elif celsiusInput.value = "" then
+                fahrenheitInput.value <- ""
+        )
+        
+        // Add event listener for Fahrenheit input changes
+        fahrenheitInput.addEventListener("input", fun _ ->
+            if not isUpdating && fahrenheitInput.value <> "" then
+                isUpdating <- true
+                try
+                    let fahrenheit = float fahrenheitInput.value
+                    let celsius = fahrenheitToCelsius fahrenheit
+                    celsiusInput.value <- celsius.ToString("0.##")
+                with _ ->
+                    celsiusInput.value <- ""
+                isUpdating <- false
+            elif fahrenheitInput.value = "" then
+                celsiusInput.value <- ""
+        )
 
 /// Initialize the demo
 let initializeDemo() =
     // Create main container
     let container = document.createElement "div"
-    container.className <- "max-w-lg mx-auto my-10 p-6 bg-gray-50"
+    container.className <- Styles.container
     document.body.appendChild(container) |> ignore
     
     // Add title
     let title = document.createElement "h1"
     title.textContent <- "Temperature Converter"
-    title.className <- "text-3xl text-center text-gray-800 mb-8 font-semibold"
+    title.className <- Styles.title
     container.appendChild(title) |> ignore
     
-    // Create converters
-    let celsiusToFahrenheitConverter = 
-        createConverter("Celsius", "Fahrenheit", celsiusToFahrenheit)
-    container.appendChild(celsiusToFahrenheitConverter) |> ignore
+    // Create bidirectional converter
+    let converterContainer = document.createElement "div"
+    converterContainer.className <- Styles.converterContainer
+    container.appendChild(converterContainer) |> ignore
     
-    let fahrenheitToCelsiusConverter = 
-        createConverter("Fahrenheit", "Celsius", fahrenheitToCelsius)
-    container.appendChild(fahrenheitToCelsiusConverter) |> ignore
+    // Create input fields with labels
+    let (celsiusDiv, celsiusInput) = Helpers.createLabeledInput "Celsius"
+    let (fahrenheitDiv, fahrenheitInput) = Helpers.createLabeledInput "Fahrenheit"
+    
+    // Add to container
+    converterContainer.appendChild(celsiusDiv) |> ignore
+    
+    // Add bidirectional arrow
+    let arrow = document.createElement "div"
+    arrow.className <- Styles.arrow
+    arrow.innerHTML <- "↔"
+    converterContainer.appendChild(arrow) |> ignore
+    
+    // Add fahrenheit input to container
+    converterContainer.appendChild(fahrenheitDiv) |> ignore
+    
+    // Set up conversion between the inputs
+    Helpers.setupConversion celsiusInput fahrenheitInput
     
     // Add a note explaining the app
     let note = document.createElement "div"
-    note.className <- "mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded text-sm text-gray-700 leading-relaxed"
+    note.className <- Styles.note
     note.innerHTML <- """
         <strong>About this demo:</strong>
         <p class="mt-2">This simple temperature converter demonstrates how to create F# bindings with Fable.
-        It uses Tailwind CSS through CDN and shows the basic pattern of creating type-safe F# functions
-        that can be easily used from JavaScript.</p>
+        It uses Tailwind CSS through CDN and shows the basic pattern of creating fable bindings/packages.</p>
         <p class="mt-2">The converter functions are located in the GlueTemplate.Temperature module.</p>
     """
     container.appendChild(note) |> ignore
