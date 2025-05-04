@@ -160,7 +160,12 @@ build.cmd demo --watch
 This will:
 1. Build your binding project
 2. Start a development server with hot reloading
-3. Open a browser with your demo application
+3. Automatically open a browser with your demo application
+
+The development server is configured to:
+- Provide hot module replacement (changes appear instantly)
+- Automatically open the browser when started
+- Ignore F# source files in watch mode (to prevent double compilation)
 
 ### Build Commands
 

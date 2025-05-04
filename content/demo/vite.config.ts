@@ -41,7 +41,8 @@ export default defineConfig(async ({ command, mode }) => {
                 ignored: [
                     "**/*.fs"
                 ]
-            }
+            },
+            open: true, // Automatically open browser on server start
         },
         clearScreen: false,
     }

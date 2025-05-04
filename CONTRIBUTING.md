@@ -230,7 +230,7 @@ Since Glutinum.Template is designed to work across different operating systems, 
 | Project creation | `dotnet new glutinum -n Test` | `dotnet new glutinum -n Test` |
 | Git initialization | Should run automatically | Should run automatically |
 | Build script execution | `build.cmd` works | `./build.sh` works (may need `chmod +x`) |
-| Demo application | `build.cmd demo --watch` | `./build.sh demo --watch` |
+| Demo application | `build.cmd demo --watch` opens browser automatically | `./build.sh demo --watch` opens browser automatically |
 
 ## Common Issues and Solutions
 
