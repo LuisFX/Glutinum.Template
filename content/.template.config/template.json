@@ -15,7 +15,6 @@
     "groupIdentity": "Fable.Template.Glutinum",
     "shortName": "glutinum",
     "sourceName": "GlueTemplate",
-    // This allows using the `-n` option to create a new directory
     "preferNameDirectory": true,
     "postActions": [
         {
@@ -63,6 +62,12 @@
             "description": "Setup Git for Windows",
             "condition": "(OS == \"Windows_NT\")",
             "actionId": "3A7C4B45-1F5D-4A30-959A-51B88E82B5D2",
+            "args": {
+                "executable": "git",
+                "args": "init",
+                "redirectStandardOutput": false,
+                "redirectStandardError": false
+            },
             "manualInstructions": [
                 {
                     "text": "Initialize a git repository by running 'git init'"
