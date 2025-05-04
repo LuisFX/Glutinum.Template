@@ -11,6 +11,7 @@
     <ProjectReference Include="..\src\GlueTemplate.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Fable.Browser.Dom" />
     <PackageReference Include="Fable.Core" />
   </ItemGroup>
 </Project>

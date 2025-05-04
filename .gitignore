@@ -10,3 +10,6 @@ bin/
 .DS_Store
 node_modules/
 demo/dist/
+
+# Ignore zip files at the root level only
+/*.zip
